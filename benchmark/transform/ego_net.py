@@ -56,6 +56,7 @@ def ego_nets(graph, radius=2):
         G.add_nodes_from(ego.nodes(data=True))
         G.add_edges_from(ego.edges(data=True))
     graph.G = G
+
     graph.node_id_index = torch.arange(len(egos))
 
 def ego_graph(edge_index, num_nodes, node, radius=2):
@@ -144,19 +145,34 @@ def deepsnap_ego(args, pyg_dataset):
     for i in range(args.num_runs):
         if args.print_run:
             print("Run {}".format(i + 1))
+        time_1 = time.time()
+
         graphs = GraphDataset.pyg_to_graphs(pyg_dataset, verbose=True, netlib=netlib)
+        time_2 = time.time()
+
         dataset = GraphDataset(graphs, task=task)
         datasets = {}
         datasets['train'], datasets['val'], datasets['test'] = dataset.split(transductive=False, split_ratio = [0.8, 0.1, 0.1], shuffle=False)
+        time_3 = time.time()
+
         dataloaders = {
             split: DataLoader(
                 dataset, collate_fn=Batch.collate(), 
                 batch_size=1, shuffle=False
             ) for split, dataset in datasets.items()
         }
+        time_4 = time.time()
+
         s = time.time()
         for batch in dataloaders['train']:
             batch = batch.apply_transform(ego_nets, update_tensor=True)
+        time_5 = time.time()
+        print("Time 1: ", time_1)
+        print("Time 2: ", time_2)
+        print("Time 3: ", time_3)
+        print("Time 4: ", time_4)
+        print("Time 5: ", time_5)
+
         avg_time += (time.time() - s)
     print("DeepSNAP has average time: {}".format(avg_time / args.num_runs))
 
