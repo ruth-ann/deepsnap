@@ -36,15 +36,21 @@ def arg_parse():
 
 def ego_nets(graph, radius=2):
     egos = []
+    time_1 = time.time()
+
     for i in range(graph.num_nodes):
         if radius > 4:
             egos.append(graph.G)
         else:
             egos.append(netlib.ego_graph(graph.G, i, radius=radius))
+    time_2 = time.time()
+
     G = graph.G.__class__()
     id_bias = graph.num_nodes
     for i in range(len(egos)):
         G.add_node(i, **egos[i].nodes(data=True)[i])
+    time_3 = time.time()
+
     for i in range(len(egos)):
         keys = list(egos[i].nodes)
         keys.remove(i)
@@ -56,8 +62,18 @@ def ego_nets(graph, radius=2):
         G.add_nodes_from(ego.nodes(data=True))
         G.add_edges_from(ego.edges(data=True))
     graph.G = G
+    time_4 = time.time()
 
     graph.node_id_index = torch.arange(len(egos))
+
+    time_5 = time.time()
+
+
+    print("Time 1: ", time_1)
+    print("Time 2: ", time_1 - time_2)
+    print("Time 3: ", time_1 - time_3)
+    print("Time 4: ", time_1 - time_4)
+    print("Time 5: ", time_1 - time_5)
 
 def ego_graph(edge_index, num_nodes, node, radius=2):
     edge_list = {}
@@ -167,11 +183,11 @@ def deepsnap_ego(args, pyg_dataset):
         for batch in dataloaders['train']:
             batch = batch.apply_transform(ego_nets, update_tensor=True)
         time_5 = time.time()
-        print("Time 1: ", time_1)
-        print("Time 2: ", time_1 - time_2)
-        print("Time 3: ", time_1 - time_3)
-        print("Time 4: ", time_1 - time_4)
-        print("Time 5: ", time_1 - time_5)
+        # print("Time 1: ", time_1)
+        # print("Time 2: ", time_1 - time_2)
+        # print("Time 3: ", time_1 - time_3)
+        # print("Time 4: ", time_1 - time_4)
+        # print("Time 5: ", time_1 - time_5)
 
         avg_time += (time.time() - s)
     print("DeepSNAP has average time: {}".format(avg_time / args.num_runs))
