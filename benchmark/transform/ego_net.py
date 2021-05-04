@@ -52,15 +52,36 @@ def ego_nets(graph, radius=2):
     time_3 = time.time() #0.0017819404602050781
 
     for i in range(len(egos)):
+        time_1 = time.time()
         keys = list(egos[i].nodes)
+        time_2 = time.time()
         keys.remove(i)
+        time_3 = time.time()
         id_cur = egos[i].number_of_nodes() - 1
+        time_4 = time.time()
         vals = range(id_bias, id_bias + id_cur)
+        time_5 = time.time()
         id_bias += id_cur
         mapping = dict(zip(keys, vals))
+        time_6 = time.time()
         ego = netlib.relabel_nodes(egos[i], mapping, copy=True)
+        time_7 = time.time()
         G.add_nodes_from(ego.nodes(data=True))
+        time_8 = time.time()
         G.add_edges_from(ego.edges(data=True))
+        time_9 = time.time()
+    print("For loop time")
+    print("Ego Net 2: ", time_2 - time_1)
+    print("Ego Net 3: ", time_3 - time_2)
+    print("Ego Net 4: ", time_4 - time_3)
+    print("Ego Net 5: ", time_5 - time_4)
+    print("Ego Net 6: ", time_6 - time_5)
+    print("Ego Net 7: ", time_7 - time_6)
+    print("Ego Net 8: ", time_8 - time_7)
+    print("Ego Net 9: ", time_9 - time_8)
+
+    print("For loop times")
+
     graph.G = G
     time_4 = time.time()#0.05971074104309082
 
@@ -69,11 +90,11 @@ def ego_nets(graph, radius=2):
     time_5 = time.time()
 
 
-    print("Ego Net Time 1: ", time_1)
-    print("Ego Net 2: ", time_2 - time_1)
-    print("Ego Net 3: ", time_3 - time_2)
-    print("Ego Net 4: ", time_4 - time_3)
-    print("Ego Net 5: ", time_5 - time_4)
+    # print("Ego Net Time 1: ", time_1)
+    # print("Ego Net 2: ", time_2 - time_1)
+    # print("Ego Net 3: ", time_3 - time_2)
+    # print("Ego Net 4: ", time_4 - time_3)
+    # print("Ego Net 5: ", time_5 - time_4)
 
 def ego_graph(edge_index, num_nodes, node, radius=2):
     edge_list = {}
@@ -183,13 +204,13 @@ def deepsnap_ego(args, pyg_dataset):
         for batch in dataloaders['train']:
             batch = batch.apply_transform(ego_nets, update_tensor=True)
         time_5 = time.time()
-        print("Deepsnap Ego")
-        print("Time 1: ", time_1)
-        print("Time 2: ", time_2 - time_1)
-        print("Time 3: ", time_3 - time_2)
-        print("Time 4: ", time_4 - time_3)
-        print("Time 5: ", time_5 - time_4)
-        print("Deepsnap Ego")
+        # print("Deepsnap Ego")
+        # print("Time 1: ", time_1)
+        # print("Time 2: ", time_2 - time_1)
+        # print("Time 3: ", time_3 - time_2)
+        # print("Time 4: ", time_4 - time_3)
+        # print("Time 5: ", time_5 - time_4)
+        # print("Deepsnap Ego")
 
         avg_time += (time.time() - s)
     print("DeepSNAP has average time: {}".format(avg_time / args.num_runs))
