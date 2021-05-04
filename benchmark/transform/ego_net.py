@@ -66,7 +66,7 @@ def ego_nets(graph, radius=2):
         time_6 = time.time()
         ego = netlib.relabel_nodes(egos[i], mapping, copy=True)
         time_7 = time.time()
-	G.add_node(1, **egos[1].nodes(data=True)[1])
+        G.add_node(1, **egos[1].nodes(data=True)[1])
 #        G.add_nodes_from(ego.nodes(data=True))
  #       time_8 = time.time()
         G.add_edges_from(ego.edges(data=True))
