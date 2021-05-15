@@ -36,60 +36,62 @@ def arg_parse():
 
 def ego_nets(graph, radius=2):
     egos = []
-    time_1 = time.time()
+    #time_1 = time.time()
 
     for i in range(graph.num_nodes):
         if radius > 4:
             egos.append(graph.G)
         else:
             egos.append(netlib.ego_graph(graph.G, i, radius=radius))
-    time_2 = time.time() #0.0007936954498291016
+   # time_2 = time.time() #0.0007936954498291016
 
     G = graph.G.__class__()
     id_bias = graph.num_nodes
     for i in range(len(egos)):
         G.add_node(i, **egos[i].nodes(data=True)[i])
-    time_3 = time.time() #0.0017819404602050781
-
+    #time_3 = time.time() #0.0017819404602050781
+    
     for i in range(len(egos)):
-        time_1 = time.time()
+        #find number of nodes and edges
+        #print("EGOS ", i, egos[i].number_of_nodes(), egos[i].number_of_edges())
+     #   time_1 = time.time()
         keys = list(egos[i].nodes)
-        time_2 = time.time()
+      #  time_2 = time.time()
         keys.remove(i)
-        time_3 = time.time()
+       # time_3 = time.time()
         id_cur = egos[i].number_of_nodes() - 1
-        time_4 = time.time()
+        #time_4 = time.time()
         vals = range(id_bias, id_bias + id_cur)
-        time_5 = time.time()
+       # time_5 = time.time()
         id_bias += id_cur
         mapping = dict(zip(keys, vals))
-        time_6 = time.time()
-       # ego = netlib.relabel_nodes(egos[i], mapping, copy=True)
-        time_7 = time.time()
-        G.add_nodes_from(range(2))
-        #G.add_nodes_from(ego.nodes(data=True))
-        time_8 = time.time()
-        G.add_edges_from([[0, 1]])
-#        G.add_edges_from(ego.edges(data=True))
-        time_9 = time.time()
-    print("For loop time")
-    print("Ego Net 2: ", time_2 - time_1)
-    print("Ego Net 3: ", time_3 - time_2)
-    print("Ego Net 4: ", time_4 - time_3)
-    print("Ego Net 5: ", time_5 - time_4)
-    print("Ego Net 6: ", time_6 - time_5)
-    print("Ego Net 7: ", time_7 - time_6)
-    print("Ego Net 8: ", time_8 - time_7)
-    print("Ego Net 9: ", time_9 - time_8)
+        #time_6 = time.time()
+        ego = netlib.relabel_nodes(egos[i], mapping, copy=True)
+       # time_7 = time.time()
+        #G.add_nodes_from(range(2))
+        G.add_nodes_from(ego.nodes(data=True))
+        #time_8 = time.time()
+        #G.add_edges_from([[0, 1]])
+        G.add_edges_from(ego.edges(data=True))
+       # time_9 = time.time()
+    #print("For loop time")
+    #print("Ego Net 2: ", time_2 - time_1)
+    #print("Ego Net 3: ", time_3 - time_2)
+    #print("Ego Net 4: ", time_4 - time_3)
+    #print("Ego Net 5: ", time_5 - time_4)
+    #print("Ego Net 6: ", time_6 - time_5)
+    #print("Ego Net 7: ", time_7 - time_6)
+    #print("Ego Net 8: ", time_8 - time_7)
+    #print("Ego Net 9: ", time_9 - time_8)
 
-    print("For loop times")
+    #print("For loop times")
 
     graph.G = G
-    time_4 = time.time()#0.05971074104309082
+    #time_4 = time.time()#0.05971074104309082
 
     graph.node_id_index = torch.arange(len(egos))
 
-    time_5 = time.time()
+   # time_5 = time.time()
 
 
     # print("Ego Net Time 1: ", time_1)
@@ -184,15 +186,15 @@ def deepsnap_ego(args, pyg_dataset):
     for i in range(args.num_runs):
         if args.print_run:
             print("Run {}".format(i + 1))
-        time_1 = time.time()
+    #    time_1 = time.time()
 
         graphs = GraphDataset.pyg_to_graphs(pyg_dataset, verbose=True, netlib=netlib)
-        time_2 = time.time()
+     #   time_2 = time.time()
 
         dataset = GraphDataset(graphs, task=task)
         datasets = {}
         datasets['train'], datasets['val'], datasets['test'] = dataset.split(transductive=False, split_ratio = [0.8, 0.1, 0.1], shuffle=False)
-        time_3 = time.time()
+      #  time_3 = time.time()
 
         dataloaders = {
             split: DataLoader(
@@ -200,19 +202,21 @@ def deepsnap_ego(args, pyg_dataset):
                 batch_size=1, shuffle=False
             ) for split, dataset in datasets.items()
         }
-        time_4 = time.time()
+       # time_4 = time.time()
 
         s = time.time()
+        #print("TRAIN LENGTH", len(dataloaders['train']))
         for batch in dataloaders['train']:
             batch = batch.apply_transform(ego_nets, update_tensor=True)
-        time_5 = time.time()
-        print("Deepsnap Ego")
-        print("Time 1: ", time_1)
-        print("Time 2: ", time_2 - time_1)
-        print("Time 3: ", time_3 - time_2)
-        print("Time 4: ", time_4 - time_3)
-        print("Time 5: ", time_5 - time_4)
-        print("Deepsnap Ego")
+
+        #time_5 = time.time()
+     #   print("Deepsnap Ego")
+     #   print("Time 1: ", time_1)
+      #  print("Time 2: ", time_2 - time_1)
+      #  print("Time 3: ", time_3 - time_2)
+      #  print("Time 4: ", time_4 - time_3)
+       # print("Time 5: ", time_5 - time_4)
+       # print("Deepsnap Ego")
 
         avg_time += (time.time() - s)
     print("DeepSNAP has average time: {}".format(avg_time / args.num_runs))
@@ -236,5 +240,5 @@ if __name__ == '__main__':
 
     print("Start benchmark DeepSNAP:")
     deepsnap_ego(args, pyg_dataset)
-    print("Start benchmark Tensor:")
-    pyg_ego(args, pyg_dataset)
+    #print("Start benchmark Tensor:")
+    #pyg_ego(args, pyg_dataset)
