@@ -8,6 +8,7 @@ from torch.utils.data import DataLoader
 from deepsnap.batch import Batch
 from deepsnap.dataset import GraphDataset
 from torch_geometric.datasets import TUDataset
+#from pyinstrument import Profiler
 
 def arg_parse():
     parser = argparse.ArgumentParser(description='Pagerank arguments.')
@@ -25,7 +26,7 @@ def arg_parse():
                         help='Print out current run.')
 
     parser.set_defaults(
-        device='cuda:0',
+        device='cuda:2',
         netlib="nx",
         batch_size=1,
         num_runs=100,
@@ -35,18 +36,28 @@ def arg_parse():
     return parser.parse_args()
 
 def ego_nets(graph, radius=2):
-    egos = []
-    #time_1 = time.time()
+   # import cProfile
+    #profiler = Profiler()
+    #profiler.start()
 
+
+    egos = []
+  #  print(graph.num_nodes)
+    #time_1 = time.time()
+   # j = 0
     for i in range(graph.num_nodes):
+     #   j+= 1
         if radius > 4:
             egos.append(graph.G)
         else:
             egos.append(netlib.ego_graph(graph.G, i, radius=radius))
-   # time_2 = time.time() #0.0007936954498291016
+    #print("NUMBER OF NODES PER GRAPH:", j)
+
+    # time_2 = time.time() #0.0007936954498291016
 
     G = graph.G.__class__()
     id_bias = graph.num_nodes
+   # print(len(egos))
     for i in range(len(egos)):
         G.add_node(i, **egos[i].nodes(data=True)[i])
     #time_3 = time.time() #0.0017819404602050781
@@ -55,6 +66,7 @@ def ego_nets(graph, radius=2):
         #find number of nodes and edges
         #print("EGOS ", i, egos[i].number_of_nodes(), egos[i].number_of_edges())
      #   time_1 = time.time()
+#        print(len(egos[i]))
         keys = list(egos[i].nodes)
       #  time_2 = time.time()
         keys.remove(i)
@@ -66,10 +78,20 @@ def ego_nets(graph, radius=2):
         id_bias += id_cur
         mapping = dict(zip(keys, vals))
         #time_6 = time.time()
+   
         ego = netlib.relabel_nodes(egos[i], mapping, copy=True)
        # time_7 = time.time()
-        #G.add_nodes_from(range(2))
+#        profiler = Profiler(interval=0.00001)
+ #       profiler.start()
+
+        
+        
+#        cProfile.runctx('G.add_nodes_from(ego.nodes(data=True))', globals(), locals())
         G.add_nodes_from(ego.nodes(data=True))
+  #      profiler.stop()
+   #     print(profiler.output_text(unicode=True, color=True, show-all=True))
+        #G.add_nodes_from(range(2))
+        #cProfile.runctx('G.add_nodes_from(ego.nodes(data=True))', globals(), locals())
         #time_8 = time.time()
         #G.add_edges_from([[0, 1]])
         G.add_edges_from(ego.edges(data=True))
@@ -92,6 +114,9 @@ def ego_nets(graph, radius=2):
     graph.node_id_index = torch.arange(len(egos))
 
    # time_5 = time.time()
+#    profiler.stop()
+
+ #   print(profiler.output_text(unicode=True, color=True))
 
 
     # print("Ego Net Time 1: ", time_1)
@@ -206,9 +231,11 @@ def deepsnap_ego(args, pyg_dataset):
 
         s = time.time()
         #print("TRAIN LENGTH", len(dataloaders['train']))
+    
         for batch in dataloaders['train']:
-            batch = batch.apply_transform(ego_nets, update_tensor=True)
-
+      
+           batch = batch.apply_transform(ego_nets, update_tensor=True)
+#           print("BATCH LENGTH:", len(batch))
         #time_5 = time.time()
      #   print("Deepsnap Ego")
      #   print("Time 1: ", time_1)
@@ -223,7 +250,7 @@ def deepsnap_ego(args, pyg_dataset):
 
 if __name__ == '__main__':
     args = arg_parse()
-
+    #import cProfile
     if args.netlib == "nx":
         print("Use NetworkX as the DeepSNAP backend network library.")
         import networkx as netlib
@@ -240,5 +267,6 @@ if __name__ == '__main__':
 
     print("Start benchmark DeepSNAP:")
     deepsnap_ego(args, pyg_dataset)
+#    cProfile.runctx('deepsnap_ego(args, pyg_dataset)', globals(), locals())
     #print("Start benchmark Tensor:")
     #pyg_ego(args, pyg_dataset)
